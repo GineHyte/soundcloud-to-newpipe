@@ -10,9 +10,10 @@ var BLUE = "\033[34m"
 var MAGENTA = "\033[35m"
 
 type Args struct {
-	UserId string
-	Token  string
-	Output string
+	UserId   string
+	ClientId string
+	Token    string
+	Output   string
 }
 
 type Steam struct {
@@ -53,4 +54,19 @@ type Subscription struct {
 	SubscriberCount  int32
 	Description      string
 	NotificationMode int32
+}
+
+type UserData struct {
+	UserId              int64  `json:"id"`
+	FullName            string `json:"full_name"`
+	LikesCount          int32  `json:"likes_count"`
+	PlaylistsLikesCount int32  `json:"playlist_likes_count"`
+}
+
+type Likes struct {
+	Collection []struct {
+		Track struct {
+			PermalinkUrl string `json:"permalink_url"`
+		}
+	}
 }

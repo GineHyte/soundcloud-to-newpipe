@@ -24,6 +24,8 @@ func main() {
 				return
 			case "-u", "--userid":
 				args.UserId(ar[i+1])
+			case "-c", "--clientid":
+				args.ClientId(ar[i+1])
 			case "-t", "--token":
 				args.Token(ar[i+1])
 			}

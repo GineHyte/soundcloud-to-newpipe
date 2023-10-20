@@ -11,7 +11,8 @@ func Help() {
 	fmt.Println("Options:")
 	fmt.Println("  -h, --help\t\t\t\tShow this help message and exit")
 	fmt.Println("  -v, --version\t\t\t\tShow version number and exit")
-	fmt.Println("  -u, --userid\t\t\t\tUser ID (numbers)")
+	fmt.Println("  -u, --userid\t\t\t\tUser ID (123456789)")
+	fmt.Println("  -c, --clientid\t\t\t\tClient ID (AbbabaaAAbaabaAAAabaBAbaBa)")
 	fmt.Println("  -t, --token\t\t\t\tToken (X-XXXXXX-XXXXXXXXX-...)")
 }
 
@@ -21,6 +22,10 @@ func Version() {
 
 func UserId(user_id string) {
 	storage.Args.UserId = user_id
+}
+
+func ClientId(client_id string) {
+	storage.Args.ClientId = client_id
 }
 
 func Token(token string) {
