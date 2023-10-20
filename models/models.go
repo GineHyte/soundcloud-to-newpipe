@@ -14,3 +14,43 @@ type Args struct {
 	Token  string
 	Output string
 }
+
+type Steam struct {
+	Uid                       int64
+	ServiceId                 int16
+	Url                       string
+	Title                     string
+	StreamType                string
+	Duration                  int32
+	Uploader                  string
+	UploaderUrl               string
+	ThumbnailUrl              string
+	ViewCount                 int32
+	TextualUploadDate         string
+	UploadDate                int64
+	IsUploadDateApproximation bool
+}
+
+type Playlist struct {
+	Uid                   int64
+	Name                  string
+	IsThrumbnailPermanent bool
+	ThumbnailStreamId     string
+}
+
+type PlaylistStreamJoin struct {
+	PlaylistId int64
+	StreamId   int64
+	JoinIndex  int64
+}
+
+type Subscription struct {
+	Uid              int64
+	ServiceId        int16
+	Url              string
+	Name             string
+	AvatarUrl        string
+	SubscriberCount  int32
+	Description      string
+	NotificationMode int32
+}
