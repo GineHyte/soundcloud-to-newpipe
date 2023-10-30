@@ -32,11 +32,13 @@ func GetUserData() models.UserData {
 	return userData
 }
 
-func GetLikes() {
+func GetLikes(link string, currentIndex int32) models.Likes {
 	// get likes
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://api-v2.soundcloud.com/users/%s/track_likes?client_id=%s&limit=200&linked_partitioning=1",
-		storage.Args.UserId, storage.Args.ClientId), nil)
+	req, err := http.NewRequest("GET", link, nil)
+	req.Header = http.Header{
+		"Authorization": []string{fmt.Sprintf("OAuth %s", storage.Args.Token)},
+	}
 	tools.Errors(err, 1)
 
 	resp, err := client.Do(req)
@@ -49,4 +51,5 @@ func GetLikes() {
 	err = tools.JsonDecode(resp.Body, &likes)
 	tools.Errors(err, 1)
 
+	return likes
 }

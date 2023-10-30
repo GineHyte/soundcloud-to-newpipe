@@ -65,8 +65,18 @@ type UserData struct {
 
 type Likes struct {
 	Collection []struct {
-		Track struct {
-			PermalinkUrl string `json:"permalink_url"`
-		}
-	}
+		CreatedAt string `json:"created_at"`
+		Track     struct {
+			ArtworkUrl    string `json:"artwork_url"`
+			PermalinkUrl  string `json:"permalink_url"`
+			PlaybackCount int32  `json:"playback_count"`
+			Title         string `json:"title"`
+			Duration      int32  `json:"duration"`
+			User          struct {
+				Username     string `json:"username"`
+				PermalinkUrl string `json:"permalink_url"`
+			} `json:"user"`
+		} `json:"track"`
+	} `json:"collection"`
+	NextHref string `json:"next_href"`
 }
