@@ -37,7 +37,7 @@ func LikesToStreams(likes models.Likes, startId int64) []models.Steam {
 			ServiceId:                 1,
 			Url:                       like.Track.PermalinkUrl,
 			Title:                     like.Track.Title,
-			StreamType:                "track",
+			StreamType:                "AUDIO_STREAM",
 			Duration:                  like.Track.Duration,
 			Uploader:                  like.Track.User.Username,
 			UploaderUrl:               like.Track.User.PermalinkUrl,

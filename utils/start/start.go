@@ -42,7 +42,7 @@ func Init(args models.Args) {
 		link = tempLikes.NextHref
 		currentIndex += int32(len(tempLikes.Collection))
 	}
-	storage.Likes = tools.LikesToStreams(likes, 1)
+	storage.Likes = tools.LikesToStreams(likes, 0)
 
 	println("Likes:")
 	fmt.Printf("  LikesCount found: %v\n", len(storage.Likes))
@@ -78,11 +78,43 @@ func CreateSQL() {
 
 	log.Printf("Creating database file: %s", storage.Args.Output)
 	// create tables
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS streams (uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, service_id INTEGER NOT NULL, url TEXT, title TEXT, stream_type TEXT, duration INTEGER, uploader TEXT, uploader_url TEXT, thumbnail_url TEXT, view_count INTEGER, textual_upload_date TEXT, upload_date INTEGER, is_upload_date_approximation INTEGER)")
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS streams (
+			uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+			service_id INTEGER NOT NULL,
+			url TEXT NOT NULL,
+			title TEXT NOT NULL,
+			stream_type TEXT NOT NULL,
+			duration INTEGER NOT NULL,
+			uploader TEXT NOT NULL,
+			uploader_url TEXT,
+			thumbnail_url TEXT,
+			view_count INTEGER,
+			textual_upload_date TEXT,
+			upload_date INTEGER,
+			is_upload_date_approximation INTEGER
+		)
+	`)
 	tools.Errors(err, 1)
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS playlists (uid INTEGER PRIMARY KEY, name TEXT, is_thumbnail_permanent INTEGER, thumbnail_stream_id INTEGER)")
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS playlists (
+			uid INTEGER PRIMARY KEY NOT NULL,
+			name TEXT,
+			is_thumbnail_permanent INTEGER NOT NULL,
+			thumbnail_stream_id INTEGER NOT NULL
+		)
+	`)
 	tools.Errors(err, 1)
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS playlist_stream_join (playlist_id INTEGER NOT NULL, stream_id INTEGER NOT NULL, join_index INTEGER NOT NULL, PRIMARY KEY(playlist_id, join_index), FOREIGN KEY(playlist_id) REFERENCES playlists(uid) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED, FOREIGN KEY(stream_id) REFERENCES streams(uid) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED)")
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS playlist_stream_join (
+			playlist_id INTEGER NOT NULL,
+			stream_id INTEGER NOT NULL,
+			join_index INTEGER NOT NULL,
+			PRIMARY KEY(playlist_id, join_index),
+			FOREIGN KEY(playlist_id) REFERENCES playlists(uid) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
+			FOREIGN KEY(stream_id) REFERENCES streams(uid) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+		)
+	`)
 	tools.Errors(err, 1)
 
 	// create other tables
