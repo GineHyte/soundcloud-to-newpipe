@@ -38,7 +38,7 @@ func LikesToStreams(likes models.Likes, startId int64) []models.Steam {
 			Url:                       like.Track.PermalinkUrl,
 			Title:                     like.Track.Title,
 			StreamType:                "AUDIO_STREAM",
-			Duration:                  like.Track.Duration,
+			Duration:                  like.Track.Duration / 1000,
 			Uploader:                  like.Track.User.Username,
 			UploaderUrl:               like.Track.User.PermalinkUrl,
 			ThumbnailUrl:              like.Track.ArtworkUrl,
