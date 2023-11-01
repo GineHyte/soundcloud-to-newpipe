@@ -29,6 +29,7 @@ func GetUserData() models.UserData {
 	var userData models.UserData
 	err = tools.JsonDecode(resp.Body, &userData)
 	if err != nil {
+		log.Printf(models.RED, resp.StatusCode, models.RESET)
 		log.Printf(models.RED, resp.Body, models.RESET)
 	}
 	tools.Errors(err, 1)
@@ -54,6 +55,7 @@ func GetLikes(link string, currentIndex int32) models.Likes {
 	var likes models.Likes
 	err = tools.JsonDecode(resp.Body, &likes)
 	if err != nil {
+		log.Printf(models.RED, resp.StatusCode, models.RESET)
 		log.Printf(models.RED, resp.Body, models.RESET)
 	}
 	tools.Errors(err, 1)
@@ -79,6 +81,7 @@ func GetPlaylists(link string) models.PlaylistsSoundcloud {
 	var playlist models.PlaylistsSoundcloud
 	err = tools.JsonDecode(resp.Body, &playlist)
 	if err != nil {
+		log.Printf(models.RED, resp.StatusCode, models.RESET)
 		log.Printf(models.RED, resp.Body, models.RESET)
 	}
 	tools.Errors(err, 1)

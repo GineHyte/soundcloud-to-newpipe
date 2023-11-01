@@ -82,6 +82,9 @@ func Init(args models.Args) {
 
 	storage.RemotePlaylists = tools.PlaylistsSoundcloudToRemotePlaylists(playlists, 2)
 
+	println("Playlists:")
+	fmt.Printf("  PlaylistsCount found: %v\n", len(storage.RemotePlaylists))
+
 	// create sql table in .db file
 	CreateSQL()
 }
