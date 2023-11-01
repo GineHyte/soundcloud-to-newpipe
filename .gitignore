@@ -18,3 +18,6 @@ Godeps/
 
 # VS Code specific
 .vscode/
+
+# script results
+*.db

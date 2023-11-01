@@ -65,6 +65,23 @@ func Init(args models.Args) {
 		})
 	}
 
+	// get playlists
+	var playlists models.PlaylistsSoundcloud
+	link = fmt.Sprintf("https://api-v2.soundcloud.com/me/library/all?client_id=%s", storage.Args.ClientId)
+	currentIndex = 0
+	for {
+		tempPlaylists := requests.GetPlaylists(link)
+
+		if (tempPlaylists.Collection == nil) || (tempPlaylists.NextHref == "") {
+			break
+		}
+		playlists.Collection = append(playlists.Collection, tempPlaylists.Collection...)
+		link = tempPlaylists.NextHref
+		currentIndex += int32(len(tempPlaylists.Collection))
+	}
+
+	storage.RemotePlaylists = tools.PlaylistsSoundcloudToRemotePlaylists(playlists, 2)
+
 	// create sql table in .db file
 	CreateSQL()
 }
@@ -117,28 +134,18 @@ func CreateSQL() {
 	`)
 	tools.Errors(err, 1)
 
-	// create other tables
-	log.Printf("Creating other tables in database file: %s", storage.Args.Output)
-	_, _ = db.Exec("CREATE TABLE android_metadata (locale TEXT)")
-	_, _ = db.Exec("INSERT INTO android_metadata VALUES ('en_US')")
-	_, _ = db.Exec("CREATE TABLE feed (stream_id INTEGER NOT NULL, subscription_id INTEGER NOT NULL, PRIMARY KEY(stream_id, subscription_id), FOREIGN KEY(stream_id) REFERENCES streams(uid) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED, FOREIGN KEY(subscription_id) REFERENCES subscriptions(uid) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED)")
-	_, _ = db.Exec("CREATE INDEX index_feed_subscription_id ON feed (subscription_id)")
-	_, _ = db.Exec("CREATE TABLE feed_group (uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name TEXT NOT NULL, icon_id INTEGER NOT NULL, sort_order INTEGER NOT NULL)")
-	_, _ = db.Exec("CREATE INDEX index_feed_group_sort_order ON feed_group (sort_order)")
-	_, _ = db.Exec("CREATE TABLE feed_group_subscription_join (group_id INTEGER NOT NULL, subscription_id INTEGER NOT NULL, PRIMARY KEY(group_id, subscription_id), FOREIGN KEY(group_id) REFERENCES feed_group(uid) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED, FOREIGN KEY(subscription_id) REFERENCES subscriptions(uid) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED)")
-	_, _ = db.Exec("CREATE INDEX index_feed_group_subscription_join_subscription_id ON feed_group_subscription_join (subscription_id)")
-	_, _ = db.Exec("CREATE TABLE feed_last_updated (subscription_id INTEGER NOT NULL, last_updated INTEGER, PRIMARY KEY(subscription_id), FOREIGN KEY(subscription_id) REFERENCES subscriptions(uid) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED)")
-	_, _ = db.Exec("CREATE TABLE remote_playlists (uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, service_id INTEGER NOT NULL, name TEXT, url TEXT, thumbnail_url TEXT, uploader TEXT, stream_count INTEGER)")
-	_, _ = db.Exec("CREATE INDEX index_remote_playlists_name ON remote_playlists (name)")
-	_, _ = db.Exec("CREATE UNIQUE INDEX index_remote_playlists_service_id_url ON remote_playlists (service_id, url)")
-	_, _ = db.Exec("CREATE TABLE room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)")
-	_, _ = db.Exec("CREATE TABLE search_history (creation_date INTEGER, service_id INTEGER NOT NULL, search TEXT, id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)")
-	_, _ = db.Exec("CREATE INDEX index_search_history_search ON search_history (search)")
-	_, _ = db.Exec("CREATE TABLE stream_history (stream_id INTEGER NOT NULL, access_date INTEGER NOT NULL, repeat_count INTEGER NOT NULL, PRIMARY KEY(stream_id, access_date), FOREIGN KEY(stream_id) REFERENCES streams(uid) ON UPDATE CASCADE ON DELETE CASCADE )")
-	_, _ = db.Exec("CREATE INDEX index_stream_history_stream_id ON stream_history (stream_id)")
-	_, _ = db.Exec("CREATE TABLE stream_state (stream_id INTEGER NOT NULL, progress_time INTEGER NOT NULL, PRIMARY KEY(stream_id), FOREIGN KEY(stream_id) REFERENCES streams(uid) ON UPDATE CASCADE ON DELETE CASCADE )")
-	_, _ = db.Exec("CREATE TABLE subscriptions (uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, service_id INTEGER NOT NULL, url TEXT, name TEXT, avatar_url TEXT, subscriber_count INTEGER, description TEXT, notification_mode INTEGER NOT NULL)")
-	_, _ = db.Exec("CREATE UNIQUE INDEX index_subscriptions_service_id_url ON subscriptions (service_id, url)")
+	_, err = db.Exec(`
+			CREATE TABLE remote_playlists (
+				uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+				service_id INTEGER NOT NULL,
+				name TEXT,
+				url TEXT,
+				thumbnail_url TEXT,
+				uploader TEXT,
+				stream_count INTEGER
+			)
+		`)
+	tools.Errors(err, 1)
 
 	// insert streams
 	log.Printf("Inserting %v streams into database file: %s", len(storage.Likes), storage.Args.Output)
@@ -173,4 +180,14 @@ func CreateSQL() {
 		tools.Errors(err, 1)
 	}
 
+	// insert remote_playlists
+	log.Printf("Inserting %v remote_playlists into database file: %s", len(storage.RemotePlaylists), storage.Args.Output)
+	stmt, err = db.Prepare("INSERT INTO remote_playlists(uid, service_id, name, url, thumbnail_url, uploader, stream_count) values(?,?,?,?,?,?,?)")
+	tools.Errors(err, 1)
+	defer stmt.Close()
+
+	for _, remotePlaylist := range storage.RemotePlaylists {
+		_, err = stmt.Exec(remotePlaylist.Uid, remotePlaylist.ServiceId, remotePlaylist.Name, remotePlaylist.Url, remotePlaylist.ThumbnailUrl, remotePlaylist.Uploder, remotePlaylist.StreamCount)
+		tools.Errors(err, 1)
+	}
 }

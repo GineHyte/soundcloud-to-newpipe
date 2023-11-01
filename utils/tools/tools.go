@@ -50,3 +50,22 @@ func LikesToStreams(likes models.Likes, startId int64) []models.Steam {
 	}
 	return streams
 }
+
+func PlaylistsSoundcloudToRemotePlaylists(playlists models.PlaylistsSoundcloud, startId int64) []models.RemotePlaylist {
+	var remotePlaylists []models.RemotePlaylist
+
+	for i, playlist := range playlists.Collection {
+		if playlist.Playlist.Public {
+			remotePlaylists = append(remotePlaylists, models.RemotePlaylist{
+				Uid:          startId + int64(i),
+				ServiceId:    1,
+				Name:         playlist.Playlist.Title,
+				Url:          playlist.Playlist.PermalinkUrl,
+				ThumbnailUrl: playlist.Playlist.ArtworkUrl,
+				Uploder:      playlist.User.Username,
+				StreamCount:  playlist.Playlist.TrackCount,
+			})
+		}
+	}
+	return remotePlaylists
+}

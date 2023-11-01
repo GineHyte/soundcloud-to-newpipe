@@ -80,3 +80,29 @@ type Likes struct {
 	} `json:"collection"`
 	NextHref string `json:"next_href"`
 }
+
+type PlaylistsSoundcloud struct {
+	Collection []struct {
+		User struct {
+			Username string `json:"username"`
+		} `json:"user"`
+		Playlist struct {
+			Title        string `json:"title"`
+			PermalinkUrl string `json:"permalink_url"`
+			Public       bool   `json:"public"`
+			ArtworkUrl   string `json:"artwork_url"`
+			TrackCount   int32  `json:"track_count"`
+		} `json:"playlist"`
+	} `json:"collection"`
+	NextHref string `json:"next_href"`
+}
+
+type RemotePlaylist struct {
+	Uid          int64
+	ServiceId    int16
+	Name         string
+	Url          string
+	ThumbnailUrl string
+	Uploder      string
+	StreamCount  int32
+}
