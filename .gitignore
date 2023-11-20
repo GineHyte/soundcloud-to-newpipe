@@ -21,3 +21,5 @@ Godeps/
 
 # script results
 *.db
+*.zip
+*.settings

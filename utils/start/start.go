@@ -1,9 +1,12 @@
 package start
 
 import (
+	"archive/zip"
 	"database/sql"
 	"fmt"
+	"io"
 	"log"
+	"os"
 
 	models "github.com/GineHyte/sc_to_np/models"
 	requests "github.com/GineHyte/sc_to_np/utils/requests"
@@ -57,7 +60,7 @@ func Init(args models.Args) {
 	})
 
 	// create "likes" playlist join
-	for i, _ := range storage.Likes {
+	for i := range storage.Likes {
 		storage.PlaylistStreamJoins = append(storage.PlaylistStreamJoins, models.PlaylistStreamJoin{
 			PlaylistId: 1,
 			StreamId:   int64(i) + 1,
@@ -87,12 +90,15 @@ func Init(args models.Args) {
 
 	// create sql table in .db file
 	CreateSQL()
+
+	// pack everything into a zip file
+	PackZip()
 }
 
 // create sql table in .db file
 func CreateSQL() {
 	// open db
-	db, err := sql.Open("sqlite3", storage.Args.Output)
+	db, err := sql.Open("sqlite3", "newpipe.db")
 	tools.Errors(err, 1)
 	defer db.Close()
 
@@ -193,4 +199,33 @@ func CreateSQL() {
 		_, err = stmt.Exec(remotePlaylist.Uid, remotePlaylist.ServiceId, remotePlaylist.Name, remotePlaylist.Url, remotePlaylist.ThumbnailUrl, remotePlaylist.Uploder, remotePlaylist.StreamCount)
 		tools.Errors(err, 1)
 	}
+}
+
+// pack everything into a zip file
+func PackZip() {
+	log.Println("creating zip archive")
+	//Create a new zip archive and named archive.zip
+	archive, err := os.Create(storage.Args.Output)
+	tools.Errors(err, 1)
+	defer archive.Close()
+
+	log.Println("archive file created successfully")
+	//Create a new zip writer
+	zipWriter := zip.NewWriter(archive)
+	fmt.Println("opening db file")
+	//Add files to the zip archive
+	f1, err := os.Open("newpipe.db")
+	tools.Errors(err, 1)
+	defer f1.Close()
+
+	log.Println("adding file to archive..")
+	w1, err := zipWriter.Create("newpipe.db")
+	tools.Errors(err, 1)
+	_, err = io.Copy(w1, f1)
+	tools.Errors(err, 1)
+	defer os.Remove("newpipe.db")
+
+	log.Println("closing archive")
+	zipWriter.Close()
+
 }
